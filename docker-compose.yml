@@ -1,0 +1,46 @@
+services:
+  # MongoDB service
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./data.json:/docker-entrypoint-initdb.d/data.json:ro
+    networks:
+      - bot-network
+    command: >
+      bash -c "
+      mongod --fork --logpath /var/log/mongodb.log --bind_ip 0.0.0.0 &&
+      mongoimport --host localhost --db local --collection thinadhoo_address --file /docker-entrypoint-initdb.d/data.json --jsonArray &&
+      mongod --shutdown &&
+      mongod --bind_ip 0.0.0.0
+      "
+      
+  # Node.js Telegram Bot service
+  bot:
+    build: .
+    container_name: telegram-bot
+    restart: always
+    depends_on:
+      - mongodb
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN}    # Ensure you have a .env or specify in your system
+      MONGO_URI: ${MONGO_URI}
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - bot-network
+    ports:
+      - "3000:3000"  # Example port for any web services if needed
+    command: node bot.js   # Start the bot using `node bot.js` when the container starts
+
+networks:
+  bot-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
