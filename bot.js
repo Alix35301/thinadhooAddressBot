@@ -21,11 +21,23 @@ const locationSchema = new mongoose.Schema();
 // Create Location Model
 const Location = mongoose.model("Location", locationSchema, 'thinadhoo_address');
 
+const sanitizeRegex = (str) => {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters
+};
+
+if (!text.trim()) {
+    throw new Error("Search text cannot be empty");
+}
+
+const safeText = sanitizeRegex(text);
+
+
 bot.on("message", async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
-    const address = await Location.findOne({ title: { $regex: new RegExp(text, "i") } })
+    const safeText = sanitizeRegex(text);
+    const address = await Location.findOne({ title: { $regex: new RegExp(safeText, "i") } });
 
     if (address) {
         const addressObject = address.toObject();
