@@ -25,11 +25,6 @@ const sanitizeRegex = (str) => {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters
 };
 
-if (!text.trim()) {
-    throw new Error("Search text cannot be empty");
-}
-
-const safeText = sanitizeRegex(text);
 
 
 bot.on("message", async (msg) => {
