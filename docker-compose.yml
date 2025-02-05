@@ -29,8 +29,6 @@ services:
     environment:
       BOT_TOKEN: ${BOT_TOKEN}    # Ensure you have a .env or specify in your system
       MONGO_URI: ${MONGO_URI}
-    volumes:
-      - .:/usr/src/app
     networks:
       - bot-network
     ports:
