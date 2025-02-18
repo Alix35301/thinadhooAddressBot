@@ -52,7 +52,8 @@ const sanitizeRegex = (str) => {
 };
 
 // Add command to check analytics - restricted to admin
-bot.onText(/\/stats/, async (msg) => {
+
+const handleStatsCommand = async (msg) => {
     try {
         const chatId = msg.chat.id;
         const userId = msg.from.id;
@@ -78,7 +79,7 @@ bot.onText(/\/stats/, async (msg) => {
         console.error('Error fetching analytics:', error);
         bot.sendMessage(chatId, "⚠️ Error fetching statistics.");
     }
-});
+};
 
 bot.on("message", async (msg) => {
     try {
@@ -86,9 +87,9 @@ bot.on("message", async (msg) => {
         const text = msg.text;
         const userId = msg.from.id;
 
-        // Ignore commands (messages starting with /)
-        if (text && text.startsWith('/')) {
-            return;
+        // handle stats command
+        if (text && text.startsWith('/stats')) {
+            handleStatsCommand(msg);
         }
 
         // Update analytics
