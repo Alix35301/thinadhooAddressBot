@@ -90,6 +90,7 @@ bot.on("message", async (msg) => {
         // handle stats command
         if (text === "/stats") {
             handleStatsCommand(msg);
+            return;
         }
 
         // Update analytics
