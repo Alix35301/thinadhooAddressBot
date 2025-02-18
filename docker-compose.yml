@@ -4,8 +4,7 @@ services:
     image: mongo:latest
     container_name: mongodb
     restart: always
-    ports:
-      - "27017:27017"
+
     volumes:
       - mongodb_data:/data/db
       - ./data.json:/docker-entrypoint-initdb.d/data.json:ro
@@ -31,8 +30,7 @@ services:
       MONGO_URI: ${MONGO_URI}
     networks:
       - bot-network
-    ports:
-      - "3000:3000"  # Example port for any web services if needed
+
     command: node bot.js   # Start the bot using `node bot.js` when the container starts
 
 networks:
