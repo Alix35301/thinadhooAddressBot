@@ -51,11 +51,45 @@ const sanitizeRegex = (str) => {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters
 };
 
+// Add command to check analytics - restricted to admin
+bot.onText(/\/stats/, async (msg) => {
+    try {
+        const chatId = msg.chat.id;
+        const userId = msg.from.id;
+        
+        // Check if user is admin
+        if (userId !== Number(process.env.ADMIN_USER_ID)) {
+            return; // Silently ignore the command from non-admin users
+        }
+
+        const analytics = await Analytics.findOne({});
+        
+        if (analytics) {
+            const stats = `📊 Bot Statistics\n\n` +
+                         `Total Messages: ${analytics.totalMessages}\n` +
+                         `Unique Users: ${analytics.uniqueUsers.size}\n` +
+                         `Last Updated: ${analytics.lastUpdated.toLocaleString()}`;
+            
+            await bot.sendMessage(chatId, stats);
+        } else {
+            await bot.sendMessage(chatId, "No statistics available yet.");
+        }
+    } catch (error) {
+        console.error('Error fetching analytics:', error);
+        bot.sendMessage(chatId, "⚠️ Error fetching statistics.");
+    }
+});
+
 bot.on("message", async (msg) => {
     try {
         const chatId = msg.chat.id;
         const text = msg.text;
         const userId = msg.from.id;
+
+        // Ignore commands (messages starting with /)
+        if (text && text.startsWith('/')) {
+            return;
+        }
 
         // Update analytics
         const analytics = await Analytics.findOne({}) || new Analytics();
@@ -92,35 +126,6 @@ bot.on("message", async (msg) => {
     } catch (error) {
         console.error('Error processing message:', error);
         bot.sendMessage(chatId, "⚠️ An error occurred while processing your request.");
-    }
-});
-
-// Add command to check analytics - restricted to admin
-bot.onText(/\/stats/, async (msg) => {
-    try {
-        const chatId = msg.chat.id;
-        const userId = msg.from.id;
-        
-        // Check if user is admin
-        if (userId !== Number(process.env.ADMIN_USER_ID)) {
-            return; // Silently ignore the command from non-admin users
-        }
-
-        const analytics = await Analytics.findOne({});
-        
-        if (analytics) {
-            const stats = `📊 Bot Statistics\n\n` +
-                         `Total Messages: ${analytics.totalMessages}\n` +
-                         `Unique Users: ${analytics.uniqueUsers.size}\n` +
-                         `Last Updated: ${analytics.lastUpdated.toLocaleString()}`;
-            
-            await bot.sendMessage(chatId, stats);
-        } else {
-            await bot.sendMessage(chatId, "No statistics available yet.");
-        }
-    } catch (error) {
-        console.error('Error fetching analytics:', error);
-        bot.sendMessage(chatId, "⚠️ Error fetching statistics.");
     }
 });
 
