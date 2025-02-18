@@ -88,7 +88,7 @@ bot.on("message", async (msg) => {
         const userId = msg.from.id;
 
         // handle stats command
-        if (text && text.startsWith('/stats')) {
+        if (text === "/stats") {
             handleStatsCommand(msg);
         }
 
