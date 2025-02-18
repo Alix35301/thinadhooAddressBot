@@ -28,8 +28,11 @@ services:
     environment:
       BOT_TOKEN: ${BOT_TOKEN}    # Ensure you have a .env or specify in your system
       MONGO_URI: ${MONGO_URI}
+      ADMIN_USER_ID: ${ADMIN_USER_ID}
     networks:
       - bot-network
+    volumes:
+      - ./bot.js:/app/bot.js
 
     command: node bot.js   # Start the bot using `node bot.js` when the container starts
 

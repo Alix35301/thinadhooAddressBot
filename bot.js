@@ -17,7 +17,6 @@ mongoose.connect(MONGO_URI, {
     useNewUrlParser: true, 
     useUnifiedTopology: true,
     serverSelectionTimeoutMS: 5000,
-    keepAlive: true
 })
     .then(() => console.log("✅ Connected to MongoDB"))
     .catch(err => console.error("❌ MongoDB connection error:", err));
@@ -40,7 +39,7 @@ const Location = mongoose.model("Location", locationSchema, 'thinadhoo_address')
 // Add Analytics Schema
 const analyticsSchema = new mongoose.Schema({
     totalMessages: { type: Number, default: 0 },
-    uniqueUsers: { type: Set, default: new Set() },
+    uniqueUsers: [{ type: Number }], // Changed from Set to Array of Numbers
     lastUpdated: { type: Date, default: Date.now }
 });
 
@@ -54,13 +53,18 @@ const sanitizeRegex = (str) => {
 // Add command to check analytics - restricted to admin
 
 const handleStatsCommand = async (msg) => {
+    const chatId = msg.chat.id;  // Move this outside try-catch
+    
     try {
-        const chatId = msg.chat.id;
         const userId = msg.from.id;
+
+        console.log(userId);
+        console.log(process.env.ADMIN_USER_ID);
+
         
         // Check if user is admin
         if (userId !== Number(process.env.ADMIN_USER_ID)) {
-            return; // Silently ignore the command from non-admin users
+            return;
         }
 
         const analytics = await Analytics.findOne({});
@@ -68,7 +72,7 @@ const handleStatsCommand = async (msg) => {
         if (analytics) {
             const stats = `📊 Bot Statistics\n\n` +
                          `Total Messages: ${analytics.totalMessages}\n` +
-                         `Unique Users: ${analytics.uniqueUsers.size}\n` +
+                         `Unique Users: ${analytics.uniqueUsers.length}\n` +
                          `Last Updated: ${analytics.lastUpdated.toLocaleString()}`;
             
             await bot.sendMessage(chatId, stats);
@@ -82,10 +86,10 @@ const handleStatsCommand = async (msg) => {
 };
 
 bot.on("message", async (msg) => {
+    const chatId = msg.chat.id;
+    const text = msg.text;
+    const userId = msg.from.id;
     try {
-        const chatId = msg.chat.id;
-        const text = msg.text;
-        const userId = msg.from.id;
 
         // handle stats command
         if (text === "/stats") {
@@ -94,9 +98,15 @@ bot.on("message", async (msg) => {
         }
 
         // Update analytics
+        // Update analytics
         const analytics = await Analytics.findOne({}) || new Analytics();
         analytics.totalMessages += 1;
-        analytics.uniqueUsers.add(userId);
+        
+        // Check if user is not already in uniqueUsers array
+        if (!analytics.uniqueUsers.includes(userId)) {
+            analytics.uniqueUsers.push(userId);
+        }
+        
         analytics.lastUpdated = new Date();
         await analytics.save();
 
